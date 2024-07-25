@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    font-weight: normal;
+}
+
+body {
+    margin: 0;
+    font-family: 'Kanit', sans-serif;
+}
+
+.navbar-container {
+    z-index: 50;
+    padding: 10px;
+    height: 100px;
+    background-color: white;
+    display: flex;
+    align-items: center; /* Center items vertically */
+    opacity: 0; /* Initially hide the navbar */
+    transition: opacity 0.5s ease-in-out; /* Add transition */
+    position: fixed;
+    top: 0;
+    width: 100%;
+    visibility: hidden; 
+    border-bottom: 1px solid black;
+    justify-content: space-between;
+}
+
+.navbar-container.show {
+    opacity: 1; /* Show the navbar */
+    visibility: visible; /* Ensure it's visible */
+}
+
+#nav-logo {
+    width: 250px;
+    height: auto;
+}
+
+#nav-app-button {
+    font-size: x-large;
+    background-color: black;
+    color: white;
+    font-weight: 500;
+    padding: 9px;
+    border-radius: 7px;
+    margin-right: 50px;
+}
+
+.image-section {
+    position: relative;
+    width: 100%;
+    height: 900px; 
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+#main-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    z-index: -1;
+}
+
+#text-overlay {
+    position: absolute;
+    top: 230px;
+    left: 285px;
+    transform: translate(-50%, -50%);
+    color: black;
+    text-align: center;
+    z-index: 10;
+    line-height: 60px;
+    text-align: left;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 100 !important; /* Ensure light version of Kanit is used */
+}
+
+#world {
+    font-style: italic;
+}
+
+#line {
+    height: 2px;
+    background-color: black;
+    position: absolute;
+    top: 98px;
+    z-index: 49;
+    left: 100px;
+    right: 100px;
+}
+
+#picture-logo {
+    position: absolute;
+    top: 10px;
+    left: 150px;
+    width: 200px;
+    height: auto;
+}
+
+#app-button {
+    position: absolute;
+    top: 27px;
+    right: 185px;
+    font-size: x-large;
+    background-color: black;
+    color: white;
+    font-weight: 500;
+    padding: 9px;
+    border-radius: 7px;
+}
+
+#app-button:hover {
+    opacity: 0.8;
+    transition: 0.1s;
+}
+
+.content-section {
+    background-color: white;
+    height: 1000px;
+}
+
+.mission {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#statement {
+    font-size: x-large;
+    margin: 70px 180px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-around;
+    background-color: #333;
+    color: white;
+    padding: 20px;
+}
+
+.footer-section {
+    flex: 1;
+    margin: 10px;
+}
+
+.footer-section h3 {
+    border-bottom: 1px solid #777;
+    padding-bottom: 10px;
+}
+
+.footer-section a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer-section a:hover {
+    text-decoration: underline;
+}

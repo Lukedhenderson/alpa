@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="../static/css/landing.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar-container">
+            <img id="nav-logo" src="../static/images/logo.jpg" alt="logo"><a href="{{ url_for('index') }}">
+            <button id="nav-app-button" href="{{ url_for('index') }}">Launch App</button></a>
+        </nav>
+    </header>
+    <main>
+        <div class="image-section">
+            <div id="line"></div> 
+            <img id="main-image" src="../static/images/main-image.jpg" alt="Landing page image">
+            <div id="text-overlay">
+                <h1>
+                    Soil Moisture Maps. <br> NDVI & EVI Maps. <br> Growth Stage Estimations.<br> 
+                    <span id="world">Anywhere in the world.</span>
+                </h1>
+            </div>
+            <div class="picture-nav">
+                <img id="picture-logo" src="../static/images/logo.jpg" alt="logo">
+                <a href="{{ url_for('index') }}"><button id="app-button" href="{{ url_for('index') }}">Launch App</button></a>
+            </div>
+        </div>
+        <div class="content-section">
+            <div class="mission">
+                <div id="statement" class="paragraph"><span style="font-style: italic; color:green">Our mission</span> is to provide affordable and accessible precision agriculture technologies to small and medium-sized farmers worldwide. We aim to empower farmers with cutting-edge tools and data-driven insights to optimize crop production, enhance resource efficiency, and increase yields. By leveraging satellite imagery and advanced analytics, we fulfill our commitment to support farmers in making informed decisions, reducing costs, and fostering sustainable agricultural practices, ultimately contributing to global food security and improved livelihoods.</div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: luke@alpa.com</p>
+                <p>Phone: +1 979 450 1304</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <a href="https://facebook.com">Facebook</a><br>
+                <a href="https://twitter.com">Twitter</a><br>
+                <a href="https://instagram.com">Instagram</a><br>
+                <a href="https://linkedin.com">LinkedIn</a>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="/privacy-policy">Privacy Policy</a><br>
+                <a href="/terms-of-service">Terms of Service</a><br>
+                <a href="/about-us">About Us</a>
+            </div>
+        </div>
+    </footer>
+    <script src="../static/js/scroll.js"></script>
+</body>
+</html>
+
