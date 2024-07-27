@@ -7,12 +7,13 @@
 body {
     margin: 0;
     font-family: 'Kanit', sans-serif;
+
 }
 
 .navbar-container {
     z-index: 50;
     padding: 10px;
-    height: 100px;
+    height: 70px;
     background-color: white;
     display: flex;
     align-items: center; /* Center items vertically */
@@ -32,19 +33,46 @@ body {
 }
 
 #nav-logo {
-    width: 250px;
+    width: 180px;
     height: auto;
+    margin-left: 100px;
 }
 
 #nav-app-button {
     font-size: x-large;
-    background-color: black;
-    color: white;
+    background-color: transparent;
+    border-style: solid;
+    color: black;
     font-weight: 500;
     padding: 9px;
-    border-radius: 7px;
-    margin-right: 50px;
+    border-radius: 18px;
+    border-width: 3px;
+    padding: 9px;
+    margin-right: 150px;
 }
+
+#app-button {
+    font-size: x-large;
+    background-color: transparent;
+    color: black;
+    border-color: black;
+    border-style: solid;
+    font-weight: 500;
+    padding: 9px;
+    border-radius: 18px;
+    border-width: 3px;
+    margin-right: 150px;
+    position: absolute;
+    top: 25px;
+    right: 60px;
+}
+
+#app-button:hover, #nav-app-button:hover {
+    background-color: rgb(0, 0, 0);
+    color: white;
+    transition: 0.3s;
+}
+
 
 .image-section {
     position: relative;
@@ -101,26 +129,9 @@ body {
     height: auto;
 }
 
-#app-button {
-    position: absolute;
-    top: 27px;
-    right: 185px;
-    font-size: x-large;
-    background-color: black;
-    color: white;
-    font-weight: 500;
-    padding: 9px;
-    border-radius: 7px;
-}
-
-#app-button:hover {
-    opacity: 0.8;
-    transition: 0.1s;
-}
-
 .content-section {
     background-color: white;
-    height: 1000px;
+    height: auto;
 }
 
 .mission {
@@ -134,12 +145,70 @@ body {
     margin: 70px 180px;
 }
 
+#line2 {
+    height: 2px;
+    background-color: black;
+    z-index: 49;
+    margin: 0 100px 70px 100px;
+}
+
+.information {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 180px;
+    padding-right: 180px;
+}
+
+.satelite-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 30px 0;
+}
+
+#satelite {
+    width: 55%;
+    height: auto;
+    border: 5px solid black;
+
+}
+
+#data-scource {
+  color: black;
+  font-size: xx-large;
+  font-weight: 300;
+}
+
+.what {
+    font-size: 60px;
+    font-weight: 300;
+    display: block;
+}
+
+#data-card, #ndvi, #evi, #soil-moisture, #yeild-prediction  {
+    padding: 0;
+}
+
+.information-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 80px;
+
+}
+
+.info-card {
+    padding: 12px 40px;
+}
+
+
 .footer-container {
     display: flex;
     justify-content: space-around;
     background-color: #333;
     color: white;
-    padding: 20px;
+    padding: 6px 20px 6px 20px;
+    margin-top: 150px;
 }
 
 .footer-section {

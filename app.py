@@ -89,9 +89,17 @@ def results():
 
         return render_template('results.html', ndvi_url=ndvi_url, evi_url=evi_url, soil_moisture_url=soil_moisture_url, true_color_url=true_color_url, yield_info=yield_pred_url, growth_stage=growth_stage)
 
+    except ValueError as ve:
+        print(f"Value Error: {str(ve)}")
+        return render_template('error.html', message="Invalid input values. Please check your coordinates and dates."), 400
+
+    except ee.EEException as eee:
+        print(f"Earth Engine Error: {str(eee)}")
+        return render_template('error.html', message="Error processing Earth Engine request. Please try again later."), 500
+
     except Exception as e:
-        print(f"Error: {str(e)}")
-        return str(e), 500
+        print(f"General Error: {str(e)}")
+        return render_template('error.html', message="An unexpected error occurred. Please try again later."), 500
 
 @app.route('/favicon.ico')
 def favicon():
