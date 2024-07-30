@@ -1,23 +1,87 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Results</title>
-        <link rel="stylesheet" href="../static/css/results.css">
-    </head>
-    <body>
-        <h1>Results</h1>
-        <h2>NDVI</h2>
-        <img src="{{ ndvi_url }}" alt="NDVI">
-        <h2>EVI</h2>
-        <img src="{{ evi_url }}" alt="EVI">
-        <h2>Soil Moisture</h2>
-        <img src="{{ soil_moisture_url }}" alt="Soil Moisture">
-        <h2>True Color Image</h2>
-        <img src="{{ true_color_url }}" alt="True Color Image">
-        <h2>Yield Prediction</h2>
-        <img src="{{ yield_info }}" alt="Yield Prediction">
-        <h2>Growth Stage Estimation</h2>
-        <p>{{ growth_stage }}</p>
-        <a href="{{ url_for('index') }}">Back</a>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <link rel="stylesheet" href="../static/css/results.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar-container">
+            <a href="{{ url_for('landing') }}"><img id="nav-logo" src="../static/images/logo.jpg" alt="logo"></a>
+            <a href="{{ url_for('index') }}">
+                <button id="nav-app-button">Back</button>
+            </a>
+        </nav>
+    </header>
+    <main>
+        <section class="result-section">
+            <h1>Results</h1>
+            <div class="result-item">
+                <h2>True Color Image</h2>
+                <div class="result-content">
+                    <img src="{{ true_color_url }}" alt="True Color Image">
+                    <div class="map-key">
+                        <h3>Key</h3>
+                        <p>Color representation of the area</p>
+                    </div>
+                </div>
+            </div>
+            <div class="result-item">
+                <h2>NDVI</h2>
+                <div class="result-content">
+                    <img src="{{ ndvi_url }}" alt="NDVI">
+                    <div class="map-key">
+                        <h3>Key</h3>
+                        <p><span class="color-box" style="background-color: blue;"></span> Low NDVI</p>
+                        <p><span class="color-box" style="background-color: green;"></span> Moderate NDVI</p>
+                        <p><span class="color-box" style="background-color: red;"></span> High NDVI</p>
+                    </div>
+                </div>
+            </div>
+            <div class="result-item">
+                <h2>EVI</h2>
+                <div class="result-content">
+                    <img src="{{ evi_url }}" alt="EVI">
+                    <div class="map-key">
+                        <h3>Key</h3>
+                        <p><span class="color-box" style="background-color: blue;"></span> Low EVI</p>
+                        <p><span class="color-box" style="background-color: green;"></span> Moderate EVI</p>
+                        <p><span class="color-box" style="background-color: red;"></span> High EVI</p>
+                    </div>
+                </div>
+            </div>
+            <div class="result-item">
+                <h2>Soil Moisture</h2>
+                <div class="result-content">
+                    <img src="{{ soil_moisture_url }}" alt="Soil Moisture">
+                    <div class="map-key">
+                        <h3>Key</h3>
+                        <p><span class="color-box" style="background-color: blue;"></span> Low Moisture</p>
+                        <p><span class="color-box" style="background-color: yellow;"></span> Moderate Moisture</p>
+                        <p><span class="color-box" style="background-color: red;"></span> High Moisture</p>
+                    </div>
+                </div>
+            </div>
+            <div class="result-item">
+                <h2>Yield Prediction</h2>
+                <div class="result-content">
+                    <img src="{{ yield_info }}" alt="Yield Prediction">
+                    <div class="map-key">
+                        <h3>Key</h3>
+                        <p>Color representation of predicted yield</p>
+                    </div>
+                </div>
+            </div>
+            <div class="result-item">
+                <h2>Growth Stage Estimation</h2>
+                <p>{{ growth_stage }}</p>
+            </div>
+            <div class="back-link">
+                <a href="{{ url_for('index') }}">Back</a>
+            </div>
+        </section>
+    </main>
+</body>
 </html>

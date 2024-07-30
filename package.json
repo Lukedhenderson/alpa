@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "mapbox-gl": "^3.5.2",
+    "mapbox-gl-draw-rectangle-mode": "^1.0.4"
+  }
+}

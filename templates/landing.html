@@ -12,8 +12,8 @@
 <body>
     <header>
         <nav class="navbar-container">
-            <img id="nav-logo" src="../static/images/logo.jpg" alt="logo"><a href="{{ url_for('index') }}">
-            <button id="nav-app-button" href="{{ url_for('index') }}">Launch App</button></a>
+            <a href="{{ url_for('landing') }}"><img id="nav-logo" src="../static/images/logo.jpg" alt="logo"></a>
+            <a href="{{ url_for('index') }}"><button id="nav-app-button" href="{{ url_for('index') }}">Launch App</button></a>
         </nav>
     </header>
     <main>
@@ -27,7 +27,7 @@
                 </h1>
             </div>
             <div class="picture-nav">
-                <img id="picture-logo" src="../static/images/logo.jpg" alt="logo">
+                <a href="{{ url_for('landing') }}"><img id="picture-logo" src="../static/images/logo.jpg" alt="logo"></a>
                 <a href="{{ url_for('index') }}"><button id="app-button" href="{{ url_for('index') }}">Launch App</button></a>
             </div>
         </div>

@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import ee
 from google.oauth2 import service_account
+import json
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,29 +23,26 @@ def index():
 @app.route('/app/results', methods=['POST'])
 def results():
     try:
-        lat1 = float(request.form['lat1'])
-        lon1 = float(request.form['lon1'])
-        lat2 = float(request.form['lat2'])
-        lon2 = float(request.form['lon2'])
+        aoi_geojson = request.form['aoi']
         start_date = request.form['start_date']
         end_date = request.form['end_date']
-        aoi = ee.Geometry.Rectangle([lon1, lat1, lon2, lat2])
+        aoi = ee.Geometry.Polygon(json.loads(aoi_geojson)['coordinates'])
 
         print(f"Received AOI: {aoi.getInfo()}, Start Date: {start_date}, End Date: {end_date}")
 
         # Calculate vegetation indices
         ndvi, evi = calculate_vegetation_indices(aoi, start_date, end_date)
         ndvi_url = ndvi.getThumbURL({
-            'min': 0, 
-            'max': 1, 
-            'palette': ['blue', 'green', 'red'], 
+            'min': 0,
+            'max': 1,
+            'palette': ['blue', 'green', 'red'],
             'region': aoi.toGeoJSONString(),
             'dimensions': 512
         })
         evi_url = evi.getThumbURL({
-            'min': 0, 
-            'max': 1, 
-            'palette': ['blue', 'green', 'red'], 
+            'min': 0,
+            'max': 1,
+            'palette': ['blue', 'green', 'red'],
             'region': aoi.toGeoJSONString(),
             'dimensions': 512
         })
@@ -53,18 +51,22 @@ def results():
 
         # Estimate soil moisture
         soil_moisture = estimate_soil_moisture(aoi, start_date, end_date)
-        soil_moisture_info = soil_moisture.getInfo()
-        print(f"Estimated Soil Moisture Info: {soil_moisture_info}")
-        
-        soil_moisture_url = soil_moisture.getThumbURL({
-            'min': -25, 
-            'max': 0, 
-            'palette': ['blue', 'green', 'yellow', 'red'], 
-            'region': aoi.toGeoJSONString(),
-            'dimensions': 512
-        })
+        if soil_moisture is None:
+            soil_moisture_url = None
+            print("No soil moisture image available.")
+        else:
+            soil_moisture_info = soil_moisture.getInfo()
+            print(f"Estimated Soil Moisture Info: {soil_moisture_info}")
 
-        print(f"Soil Moisture URL: {soil_moisture_url}")
+            soil_moisture_url = soil_moisture.getThumbURL({
+                'min': -25,
+                'max': 0,
+                'palette': ['blue', 'green', 'yellow', 'red'],
+                'region': aoi.toGeoJSONString(),
+                'dimensions': 512
+            })
+
+            print(f"Soil Moisture URL: {soil_moisture_url}")
 
         # Get true color image
         true_color = get_true_color_image(aoi, start_date, end_date)
@@ -78,9 +80,9 @@ def results():
         # Track crop growth and predict yield
         yield_pred, growth_stage = track_crop_growth_and_predict_yield(aoi, start_date, end_date)
         yield_pred_url = yield_pred.getThumbURL({
-            'min': 0, 
-            'max': 100, 
-            'palette': ['blue', 'green', 'yellow', 'red'], 
+            'min': 0,
+            'max': 100,
+            'palette': ['blue', 'green', 'yellow', 'red'],
             'region': aoi.toGeoJSONString(),
             'dimensions': 512
         })
@@ -100,7 +102,7 @@ def results():
     except Exception as e:
         print(f"General Error: {str(e)}")
         return render_template('error.html', message="An unexpected error occurred. Please try again later."), 500
-
+    
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
@@ -135,21 +137,43 @@ def calculate_vegetation_indices(aoi, start_date, end_date):
 
     return ndvi, evi
 
-# Function to estimate soil moisture
 def estimate_soil_moisture(aoi, start_date, end_date):
-    print(f"Estimating soil moisture for AOI: {aoi.getInfo()}, Date Range: {start_date} to {end_date}")
-    
-    sentinel1 = ee.ImageCollection('COPERNICUS/S1_GRD') \
-                  .filterDate(start_date, end_date) \
-                  .filterBounds(aoi) \
-                  .filter(ee.Filter.eq('instrumentMode', 'IW')) \
-                  .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING')) \
-                  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV')) \
-                  .select('VV')
-    
-    soil_moisture = sentinel1.mean().clip(aoi).rename('Soil_Moisture')
-    
-    return soil_moisture
+    try:
+        print(f"Estimating soil moisture for AOI: {aoi.getInfo()}, Date Range: {start_date} to {end_date}")
+
+        # Fetch the Sentinel-1 GRD Image Collection
+        sentinel1 = ee.ImageCollection('COPERNICUS/S1_GRD') \
+                      .filterDate(start_date, end_date) \
+                      .filterBounds(aoi) \
+                      .filter(ee.Filter.eq('instrumentMode', 'IW')) \
+                      .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING')) \
+                      .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV')) \
+                      .select('VV')
+
+        collection_size = sentinel1.size().getInfo()
+        print(f"Filtered Sentinel-1 GRD Image Collection Size: {collection_size}")
+
+        # Log available images with their dates
+        image_dates = sentinel1.aggregate_array('system:time_start').getInfo()
+        print(f"Available Image Dates: {image_dates}")
+
+        if collection_size == 0:
+            print("No Sentinel-1 GRD images found for the specified AOI and date range.")
+            return None
+
+        soil_moisture = sentinel1.mean().clip(aoi).rename('Soil_Moisture')
+        print("Soil Moisture Image created.")
+
+        min_soil_moisture = soil_moisture.reduceRegion(reducer=ee.Reducer.min(), geometry=aoi, scale=30).getInfo()
+        max_soil_moisture = soil_moisture.reduceRegion(reducer=ee.Reducer.max(), geometry=aoi, scale=30).getInfo()
+
+        print(f"Min soil moisture value: {min_soil_moisture}")
+        print(f"Max soil moisture value: {max_soil_moisture}")
+
+        return soil_moisture
+    except Exception as e:
+        print(f"Error in estimate_soil_moisture: {str(e)}")
+        raise
 
 # Function to get true color image
 def get_true_color_image(aoi, start_date, end_date):
