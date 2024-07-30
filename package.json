@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "mapbox-gl": "^3.5.2",
-    "mapbox-gl-draw-rectangle-mode": "^1.0.4"
+    "mapbox-gl-draw-rectangle-mode": "^1.0.4",
+    "marked": "^13.0.3",
+    "openai": "^4.53.2"
   }
 }

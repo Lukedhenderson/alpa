@@ -4,11 +4,29 @@ from dotenv import load_dotenv
 import ee
 from google.oauth2 import service_account
 import json
+from chat import chat_with_gpt
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+
+@app.route('/chatbot')
+def chatbot_page():
+    return render_template('chatbot.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json()
+        prompt = data.get('message', '')
+        print(f"Received input: {prompt}")  # Debugging statement
+        response_text = chat_with_gpt(prompt)
+        print(f"Generated response: {response_text}")  # Debugging statement
+        return jsonify({'response': response_text})
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")  # Debugging statement
+        return jsonify({'response': "An error occurred"}), 500
 
 @app.route('/')
 def landing():
@@ -180,9 +198,19 @@ def get_true_color_image(aoi, start_date, end_date):
     sentinel2 = ee.ImageCollection('COPERNICUS/S2') \
                   .filterDate(start_date, end_date) \
                   .filterBounds(aoi) \
-                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)) \
+                  .filter(ee.Filter.listContains('system:band_names', 'B2'))  # Ensure essential bands are present
 
-    true_color = sentinel2.median().clip(aoi).visualize(bands=['B4', 'B3', 'B2'], min=0, max=3000)
+    def mask_cloud_and_shadows(image):
+        cloud_mask = image.select('QA60').bitwiseAnd(1 << 10).eq(0)
+        cirrus_mask = image.select('QA60').bitwiseAnd(1 << 11).eq(0)
+        return image.updateMask(cloud_mask).updateMask(cirrus_mask)
+
+    sentinel2 = sentinel2.map(mask_cloud_and_shadows)
+
+    # To ensure consistent band order and presence, specifically select the bands needed for visualization
+    true_color = sentinel2.select(['B4', 'B3', 'B2']).median().clip(aoi).visualize(min=0, max=3000)
+
     return true_color
 
 # Function to track crop growth and predict yield
