@@ -1,4 +1,4 @@
-Flask==2.0.3
+Flask==2.0.1
 gunicorn==20.1.0
 earthengine-api==0.1.295
 google-auth==1.35.0
@@ -6,6 +6,9 @@ google-auth-oauthlib==0.4.6
 google-auth-httplib2==0.1.0
 requests==2.26.0
 urllib3==1.26.7
-Jinja2==3.0.3
+Jinja2==3.0.1
 Werkzeug==2.0.3
-dotenv==0.19.2
+python-dotenv==0.19.2
+
+
+
