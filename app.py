@@ -11,6 +11,11 @@ load_dotenv()
 
 app = Flask(__name__)
 
+@app.route('/')
+def landing():
+    print("Landing page accessed")
+    return render_template('landing.html')
+
 @app.route('/chatbot')
 def chatbot_page():
     return render_template('chatbot.html')
@@ -28,10 +33,6 @@ def chat():
         print(f"Error occurred: {str(e)}")  # Debugging statement
         return jsonify({'response': "An error occurred"}), 500
 
-@app.route('/')
-def landing():
-    print("Landing page accessed")
-    return render_template('landing.html')
 
 @app.route('/app/index')
 def index():
