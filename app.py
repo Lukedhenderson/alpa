@@ -5,9 +5,13 @@ import ee
 from google.oauth2 import service_account
 import json
 from chat import chat_with_gpt
+import sys
 
 # Load environment variables from .env file
 load_dotenv()
+
+print(f"Python version: {sys.version}")
+print(f"Environment: {os.environ}")
 
 app = Flask(__name__)
 
