@@ -1,136 +1,18 @@
 import os
+import sys
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import ee
 from google.oauth2 import service_account
 import json
 from chat import chat_with_gpt
-import sys
 
 # Load environment variables from .env file
 load_dotenv()
 
-print(f"Python version: {sys.version}")
-print(f"Environment: {os.environ}")
-
 app = Flask(__name__)
 
-@app.route('/')
-def landing():
-    print("Landing page accessed")
-    return render_template('landing.html')
-
-@app.route('/chatbot')
-def chatbot_page():
-    return render_template('chatbot.html')
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    try:
-        data = request.get_json()
-        prompt = data.get('message', '')
-        print(f"Received input: {prompt}")  # Debugging statement
-        response_text = chat_with_gpt(prompt)
-        print(f"Generated response: {response_text}")  # Debugging statement
-        return jsonify({'response': response_text})
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")  # Debugging statement
-        return jsonify({'response': "An error occurred"}), 500
-
-
-@app.route('/app/index')
-def index():
-    print("Index page accessed")
-    return render_template('index.html')
-
-@app.route('/app/results', methods=['POST'])
-def results():
-    try:
-        aoi_geojson = request.form['aoi']
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
-        aoi = ee.Geometry.Polygon(json.loads(aoi_geojson)['coordinates'])
-
-        print(f"Received AOI: {aoi.getInfo()}, Start Date: {start_date}, End Date: {end_date}")
-
-        # Calculate vegetation indices
-        ndvi, evi = calculate_vegetation_indices(aoi, start_date, end_date)
-        ndvi_url = ndvi.getThumbURL({
-            'min': 0,
-            'max': 1,
-            'palette': ['blue', 'green', 'red'],
-            'region': aoi.toGeoJSONString(),
-            'dimensions': 512
-        })
-        evi_url = evi.getThumbURL({
-            'min': 0,
-            'max': 1,
-            'palette': ['blue', 'green', 'red'],
-            'region': aoi.toGeoJSONString(),
-            'dimensions': 512
-        })
-
-        print(f"NDVI URL: {ndvi_url}, EVI URL: {evi_url}")
-
-        # Estimate soil moisture
-        soil_moisture = estimate_soil_moisture(aoi, start_date, end_date)
-        if soil_moisture is None:
-            soil_moisture_url = None
-            print("No soil moisture image available.")
-        else:
-            soil_moisture_info = soil_moisture.getInfo()
-            print(f"Estimated Soil Moisture Info: {soil_moisture_info}")
-
-            soil_moisture_url = soil_moisture.getThumbURL({
-                'min': -25,
-                'max': 0,
-                'palette': ['blue', 'green', 'yellow', 'red'],
-                'region': aoi.toGeoJSONString(),
-                'dimensions': 512
-            })
-
-            print(f"Soil Moisture URL: {soil_moisture_url}")
-
-        # Get true color image
-        true_color = get_true_color_image(aoi, start_date, end_date)
-        true_color_url = true_color.getThumbURL({
-            'region': aoi.toGeoJSONString(),
-            'dimensions': 512
-        })
-
-        print(f"True Color URL: {true_color_url}")
-
-        # Track crop growth and predict yield
-        yield_pred, growth_stage = track_crop_growth_and_predict_yield(aoi, start_date, end_date)
-        yield_pred_url = yield_pred.getThumbURL({
-            'min': 0,
-            'max': 100,
-            'palette': ['blue', 'green', 'yellow', 'red'],
-            'region': aoi.toGeoJSONString(),
-            'dimensions': 512
-        })
-
-        print(f"Yield Prediction URL: {yield_pred_url}, Growth Stage: {growth_stage}")
-
-        return render_template('results.html', ndvi_url=ndvi_url, evi_url=evi_url, soil_moisture_url=soil_moisture_url, true_color_url=true_color_url, yield_info=yield_pred_url, growth_stage=growth_stage)
-
-    except ValueError as ve:
-        print(f"Value Error: {str(ve)}")
-        return render_template('error.html', message="Invalid input values. Please check your coordinates and dates."), 400
-
-    except ee.EEException as eee:
-        print(f"Earth Engine Error: {str(eee)}")
-        return render_template('error.html', message="Error processing Earth Engine request. Please try again later."), 500
-
-    except Exception as e:
-        print(f"General Error: {str(e)}")
-        return render_template('error.html', message="An unexpected error occurred. Please try again later."), 500
-    
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
+# Initialize Earth Engine
 def initialize_ee():
     credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
     if not credentials_path:
@@ -142,6 +24,102 @@ def initialize_ee():
     ee.Initialize(credentials)
 
 initialize_ee()
+
+@app.route('/')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/chatbot')
+def chatbot_page():
+    return render_template('chatbot.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json()
+        prompt = data.get('message', '')
+        response_text = chat_with_gpt(prompt)
+        return jsonify({'response': response_text})
+    except Exception as e:
+        print(f"Error in /chat: {str(e)}")
+        return jsonify({'response': "An error occurred"}), 500
+
+@app.route('/app/index')
+def index():
+    return render_template('index.html')
+
+@app.route('/app/results', methods=['POST'])
+def results():
+    try:
+        aoi_geojson = request.form['aoi']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        aoi = ee.Geometry.Polygon(json.loads(aoi_geojson)['coordinates'])
+
+        # Calculate vegetation indices
+        ndvi, evi = calculate_vegetation_indices(aoi, start_date, end_date)
+        ndvi_url = ndvi.getThumbURL({
+            'min': 0,
+            'max': 1,
+            'palette': ['blue', 'green', 'red'],
+            'region': aoi,
+            'dimensions': 512
+        })
+        evi_url = evi.getThumbURL({
+            'min': 0,
+            'max': 1,
+            'palette': ['blue', 'green', 'red'],
+            'region': aoi,
+            'dimensions': 512
+        })
+
+        # Estimate soil moisture
+        soil_moisture = estimate_soil_moisture(aoi, start_date, end_date)
+        soil_moisture_url = None
+        if soil_moisture:
+            soil_moisture_url = soil_moisture.getThumbURL({
+                'min': -25,
+                'max': 0,
+                'palette': ['blue', 'green', 'yellow', 'red'],
+                'region': aoi,
+                'dimensions': 512
+            })
+
+        # Get true color image
+        true_color = get_true_color_image(aoi, start_date, end_date)
+        true_color_url = true_color.getThumbURL({
+            'region': aoi,
+            'dimensions': 512
+        })
+
+        # Track crop growth and predict yield
+        yield_pred, growth_stage = track_crop_growth_and_predict_yield(aoi, start_date, end_date)
+        yield_pred_url = yield_pred.getThumbURL({
+            'min': 0,
+            'max': 100,
+            'palette': ['blue', 'green', 'yellow', 'red'],
+            'region': aoi,
+            'dimensions': 512
+        })
+
+        return render_template('results.html', ndvi_url=ndvi_url, evi_url=evi_url, soil_moisture_url=soil_moisture_url, true_color_url=true_color_url, yield_info=yield_pred_url, growth_stage=growth_stage)
+
+    except ValueError as ve:
+        print(f"Value Error in /app/results: {str(ve)}")
+        return render_template('error.html', message="Invalid input values. Please check your coordinates and dates."), 400
+
+    except ee.EEException as eee:
+        print(f"Earth Engine Error in /app/results: {str(eee)}")
+        return render_template('error.html', message="Error processing Earth Engine request. Please try again later."), 500
+
+    except Exception as e:
+        print(f"General Error in /app/results: {str(e)}")
+        return render_template('error.html', message="An unexpected error occurred. Please try again later."), 500
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 # Function to calculate vegetation indices
 def calculate_vegetation_indices(aoi, start_date, end_date):
@@ -162,9 +140,6 @@ def calculate_vegetation_indices(aoi, start_date, end_date):
 
 def estimate_soil_moisture(aoi, start_date, end_date):
     try:
-        print(f"Estimating soil moisture for AOI: {aoi.getInfo()}, Date Range: {start_date} to {end_date}")
-
-        # Fetch the Sentinel-1 GRD Image Collection
         sentinel1 = ee.ImageCollection('COPERNICUS/S1_GRD') \
                       .filterDate(start_date, end_date) \
                       .filterBounds(aoi) \
@@ -173,30 +148,15 @@ def estimate_soil_moisture(aoi, start_date, end_date):
                       .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV')) \
                       .select('VV')
 
-        collection_size = sentinel1.size().getInfo()
-        print(f"Filtered Sentinel-1 GRD Image Collection Size: {collection_size}")
-
-        # Log available images with their dates
-        image_dates = sentinel1.aggregate_array('system:time_start').getInfo()
-        print(f"Available Image Dates: {image_dates}")
-
-        if collection_size == 0:
+        if sentinel1.size().getInfo() == 0:
             print("No Sentinel-1 GRD images found for the specified AOI and date range.")
             return None
 
         soil_moisture = sentinel1.mean().clip(aoi).rename('Soil_Moisture')
-        print("Soil Moisture Image created.")
-
-        min_soil_moisture = soil_moisture.reduceRegion(reducer=ee.Reducer.min(), geometry=aoi, scale=30).getInfo()
-        max_soil_moisture = soil_moisture.reduceRegion(reducer=ee.Reducer.max(), geometry=aoi, scale=30).getInfo()
-
-        print(f"Min soil moisture value: {min_soil_moisture}")
-        print(f"Max soil moisture value: {max_soil_moisture}")
-
         return soil_moisture
     except Exception as e:
         print(f"Error in estimate_soil_moisture: {str(e)}")
-        raise
+        return None
 
 # Function to get true color image
 def get_true_color_image(aoi, start_date, end_date):
@@ -204,18 +164,14 @@ def get_true_color_image(aoi, start_date, end_date):
                   .filterDate(start_date, end_date) \
                   .filterBounds(aoi) \
                   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)) \
-                  .filter(ee.Filter.listContains('system:band_names', 'B2'))  # Ensure essential bands are present
+                  .filter(ee.Filter.listContains('system:band_names', 'B2'))
 
     def mask_cloud_and_shadows(image):
         cloud_mask = image.select('QA60').bitwiseAnd(1 << 10).eq(0)
         cirrus_mask = image.select('QA60').bitwiseAnd(1 << 11).eq(0)
         return image.updateMask(cloud_mask).updateMask(cirrus_mask)
 
-    sentinel2 = sentinel2.map(mask_cloud_and_shadows)
-
-    # To ensure consistent band order and presence, specifically select the bands needed for visualization
-    true_color = sentinel2.select(['B4', 'B3', 'B2']).median().clip(aoi).visualize(min=0, max=3000)
-
+    true_color = sentinel2.map(mask_cloud_and_shadows).select(['B4', 'B3', 'B2']).median().clip(aoi).visualize(min=0, max=3000)
     return true_color
 
 # Function to track crop growth and predict yield
@@ -227,9 +183,6 @@ def track_crop_growth_and_predict_yield(aoi, start_date, end_date):
               .map(lambda img: img.normalizedDifference(['B8', 'B4']).rename('NDVI')).median().clip(aoi)
     
     yield_prediction = ndvi.multiply(100)
-    print(f"Yield prediction: {yield_prediction.getInfo()}")
-    
-    # Additional Growth Stage Estimation
     stats = ndvi.reduceRegion(
         reducer=ee.Reducer.mean(),
         geometry=aoi,
@@ -248,15 +201,7 @@ def track_crop_growth_and_predict_yield(aoi, start_date, end_date):
         elif mean_ndvi >= 0.5:
             growth_stage = "Late Growth Stage"
     
-    print(f"Mean NDVI: {mean_ndvi}, Growth Stage: {growth_stage}")
-    
     return yield_prediction, growth_stage
 
 if __name__ == '__main__':
-    print("Starting Flask app...")
-    app.run(debug=True)
-
-"""
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)"""
+    app.run(debug=False)
